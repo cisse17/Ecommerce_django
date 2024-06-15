@@ -5,3 +5,7 @@ En effect, j'ai effectué beaucoup de recherches sur le net, le site des dévelo
 
 ### Il se pourrait qu'il ait des ameliorations à faire, ne m'en voulait pas s'il y aurait des problémes de conventions non respectées au niveau du syntaxe
 Car Django je ne l'ai pas appris à l'école je l'ai appris moi méme en toute autonomie sur des plateformes en ligne comme udemy, Youtube etc... 
+
+
+### Technologies utilisées
+Python, Django, TailwindCSS, Htmx, js, html...
