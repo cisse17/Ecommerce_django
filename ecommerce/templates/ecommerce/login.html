@@ -1,0 +1,53 @@
+{% extends 'ecommerce/base.html' %}
+
+
+{% block title %}Login{% endblock %}
+{% block content%}
+
+<div class="max-w-lg mx-auto flex flex-wrap  p-6 ">
+ <div class="w-full bg-gray-100 p-6 rounded-xl ">
+    <h1 class="mb-6 text-2xl">Connexion</h1>
+
+    <form method="post" action="." class="space-y-3">
+        {% csrf_token %}
+
+        <div>
+            <!-- pareil aussi definir le redirect_url sur settings -->
+            <label>Nom d'utilisateur</label>
+            <input type="text" name="username" class="w-full mt-2 py-4 px-6 bg-white rounded-xl ">
+        </div>
+        
+        <div>
+            <label>Mot de passe</label>
+            <input type="password" name="password" class="w-full mt-2 py-4 px-6 bg-white rounded-xl ">
+        </div>
+
+        {% if form.errors %}
+        {% for field in form %}
+            {% for error in field.errors %}
+            <div class="p-6 bg-red-200 text-red-800 rounded-xl">
+                <!-- <p>This is an error </p> -->
+                    <p>{{ error|escape }} </p>
+            </div>
+            {% endfor %}     
+        {% endfor %}
+
+        {% for error in form.non_field_errors %}
+            <div class="p-6 bg-red-200 text-red-800 rounded-xl">
+                    <p>{{ error|escape }} </p>
+            </div>
+        {% endfor %}
+
+    {% endif %}
+
+        <div>
+            <button class="py-4 px-6 rounded-xl text-white bg-indigo-700 hover:bg-indigo-800">Connecter</button>
+        </div>
+        
+        <p class=""> Vous n'avez pas de compte ? <a href="{% url 'signup' %}" class="text-2xl text-indigo-600 hover:text-indigo-800">Inscrivez-vous</a></p>
+    </form>
+
+ </div>
+</div>
+
+{% endblock %}

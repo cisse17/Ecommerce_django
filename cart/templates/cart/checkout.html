@@ -1,0 +1,192 @@
+{% extends 'ecommerce/base.html' %}
+
+{% block title %}Paiement{% endblock %}
+{% block content%}
+
+<div class="max-w-6xl mx-auto flex flex-wrap items-start py-6 px-6 xl:px-0">
+    <!-- <form method="Post" action="{prcntage url 'start_order' prcntage}"> -->
+        <!-- {prcntage csrf_token prcntage} -->
+        
+    <div class="products w-full lg:w-3/4">
+        <h1 class="mb-5 text-3xl">Etape de paiement</h1>
+
+        <div class="w-full md:pr-6">
+            <div class="mb-6 p-6 bg-gray-100 rounded-xl">
+                <h2 class="mb-5 uppercase text-lg">information sur l'expédition</h2>
+
+                <div class="flex space-x-6">
+                    <div class="w-1/2 mb-4">
+                        <label  class="inline-block mb-2">Prenom</label>
+                        <input name="first_name" type="text" class="w-full p-5 rounded-xl" value="{{ request.user.first_name }}">
+                    </div>
+
+                    <div class="w-1/2 mb-4">
+                        <label  class="inline-block mb-2">Nom</label>
+                        <input  name="last_name" type="text" class="w-full p-5 rounded-xl" value="{{ request.user.last_name }}">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="inline-block mb-2">Adresse</label>
+                    <input  name="address" type="text" class="w-full p-5 rounded-xl">
+                </div>
+
+                <div class="flex space-x-6">
+                    <div class="w-1/2 mb-4">
+                        <label class="inline-block mb-2">code postale</label>
+                        <input name="zipcode" type="text" class="w-full p-5 rounded-xl">
+                    </div>
+
+                    <div class="w-1/2 mb-4">
+                        <label class="inline-block mb-2">ville/departement</label>
+                        <input name="place" type="text" class="w-full p-5 rounded-xl">
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="mb-6 p-6 bg-gray-100 rounded-xl">
+                <h2 class="mb-5 uppercase text-lg">information sur le contact</h2>
+                
+                <div class="mb-4">
+                    <label class="inline-block mb-2">Email</label>
+                    <input name="email" type="email" class="w-full p-5 rounded-xl" value="{{ request.user.email }} ">
+                </div>
+
+                <div class="mb-4">
+                    <label class="inline-block mb-2">Telephone</label>
+                    <input name="phone" type="phone" class="w-full p-5 rounded-xl">
+                </div>
+            </div>
+
+            <div class="mb-6 p-6 bg-gray-100 rounded-xl" id="errors">
+                <!-- <h2 class="mb-5 uppercase text-lg">information sur le paiement</h2> -->
+            </div>
+
+        </div>
+        
+    </div>
+<!-- w-full -->
+    <div class="summary f-full  md:w-1/4 p-6 bg-gray-100 rounded-xl mt-3">
+        <h2 class="uppercase text-lg mb-5">Recapitulatif</h2>
+        <div class="mb-6 flex justify-between">
+            <span class="font-semibold">Total</span>
+            <span>{{ cart.get_total_cost | floatformat:2 }}€</span>
+        </div>
+
+        <button
+            onclick="buy(event)"
+            class="inline-block px-8 py-4 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white ">
+           Confirmer le paiement
+        </button>
+    </div>
+    <!-- </form> -->
+</div>
+
+{% endblock %}
+
+{% block script %}
+<!-- inclure d'abord javascript stripe -->
+<script type="application/javascript" src="https://js.stripe.com/v3/"></script>
+
+<script>
+    // var pr afficher l'erreur si les champs son vide ds paiement information id="error"
+    let element = document.getElementById('errors')
+
+
+    function validateForm(data){
+        let errors = []
+
+        if (data.first_name == ''){
+            errors.push('prenom est vide')
+        }
+
+        if (data.email == ''){
+            errors.push('L\'email est vide')
+        }
+        if (data.phone == ''){
+            errors.push('Numéro telephone est vide')
+        }
+
+        if (data.address == ''){
+            errors.push(' L\'adresse est vide')
+        }
+
+        if (data.zipcode == ''){
+            errors.push(' Le code postale est vide')
+        }
+        if (data.place == ''){
+            errors.push(' la ville/ departement est vide')
+        }
+
+            // var pr afficher l'erreur si les champs son vide ds paiement information id="error"
+        if (errors.length > 0) {
+            let html = '<ul>';
+            
+            errors.forEach((error) => {
+                html += '<li>' + error + '</li>';
+            })
+
+            element.innerHTML = html + '</ul>';
+
+        }else {
+            element.innerHTML = '';
+        }
+
+        
+        return errors
+
+    }
+
+    function buy(event) {
+        event.preventDefault()
+
+        let data = {
+            'first_name': document.querySelector('input[name=first_name]').value,
+            'last_name': document.querySelector('input[name=last_name]').value,
+            'email': document.querySelector('input[name=email]').value,
+            'phone': document.querySelector('input[name=phone]').value,
+            'address': document.querySelector('input[name=address]').value,
+            'zipcode': document.querySelector('input[name=zipcode]').value,
+            'place': document.querySelector('input[name=place]').value,
+        }
+
+        let errors = validateForm(data)
+
+        if (errors.length) {
+            console.log('Erreurs', errors)
+
+        }else {
+            var stripe = Stripe('{{ public_key }}')
+
+            fetch('/order/start_order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(data)
+            }) //debug commande
+            .then(function(response) {
+                return response.json()
+            })
+            .then(function(session) {  //session créé dans views commande
+                return stripe.redirectToCheckout({ sessionId: session.session.id})
+            })
+            .then(function(result) {
+                if (result.error){
+                    alert(result.error.message)
+                }
+            })
+            .catch(function(error){
+                console.log('Erreurs', error)
+            })
+        }
+       
+        return false
+
+    }
+</script>
+{% endblock %}
